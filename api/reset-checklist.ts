@@ -10,6 +10,7 @@ if (process.env['NODE_ENV'] !== 'production') {
 
 const API_KEY = process.env['NOTION_API_KEY'];
 const PAGE_ID = process.env['NOTION_PAGE_ID'];
+const AUTH_HEADER = process.env['AUTH_HEADER'];
 if (!API_KEY) {
     throw new Error('Notion API key not found');
 }
@@ -24,6 +25,11 @@ type Config = {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+    // Simple shared-secret auth: compare request header with env value.
+    const providedAuth = req.headers['authorization'] || req.headers['Authorization'] as any;
+    if (!AUTH_HEADER || !providedAuth || providedAuth !== AUTH_HEADER) {
+        return res.status(200).json({ success: false, message: 'Unauthorized' });
+    }
     if (!PAGE_ID) {
         return res.status(500).json({error: 'Page ID not found'});
     }
