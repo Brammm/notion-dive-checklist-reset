@@ -1,0 +1,27 @@
+{
+  "name": "notion-duik-checklist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev",
+    "build": "tsc",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@notionhq/client": "^5.4.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.1",
+    "@vercel/node": "^5.5.15",
+    "typescript": "^5.9.3"
+  }
+}
