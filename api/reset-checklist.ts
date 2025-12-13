@@ -1,11 +1,9 @@
-// Ensure .env.local/.env are loaded in local development. On Vercel, real env vars are provided by the platform.
 import dotenv from 'dotenv';
 import { type BlockObjectResponse, Client } from '@notionhq/client';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import checklist from '../checklist.json' with { type: 'json' };
 
 if (process.env['NODE_ENV'] !== 'production') {
-    // Prefer .env.local when present, then fall back to .env
     dotenv.config({path: '.env.local'});
     dotenv.config();
 }
@@ -32,17 +30,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const blocks = await listAllChildren(PAGE_ID);
-
-        // Fetch the configuration
         const config = await getChecklistConfiguration(blocks[1]!.id);
 
-        // Delete previous checklist
         const checklist = blocks[3];
         if (checklist) {
             await notion.blocks.delete({block_id: checklist.id});
         }
         
-        // Create new checklist
         await createChecklist(PAGE_ID, config);
 
         return res.status(200).json({success: true, message: 'Checklist reset'});
@@ -62,7 +56,6 @@ async function getChecklistConfiguration(blockId: string): Promise<Config> {
 
     const blocks = await listTodoChildren(blockId);
 
-    // Fetch all children in parallel
     const childrenPromises = blocks.map(async (block) => {
         const text = block.to_do.rich_text.map(rt => rt.plain_text).join('');
 
@@ -70,7 +63,7 @@ async function getChecklistConfiguration(blockId: string): Promise<Config> {
             config[text as keyof Config] = block.to_do.checked;
         }
 
-        if (block.has_children) {
+        if (block.to_do.checked && block.has_children) {
             const children = await listTodoChildren(block.id);
             return { text, children };
         }
@@ -79,7 +72,6 @@ async function getChecklistConfiguration(blockId: string): Promise<Config> {
 
     const results = await Promise.all(childrenPromises);
 
-    // Process nested children
     for (const result of results) {
         if (!result) continue;
 
@@ -96,7 +88,6 @@ async function getChecklistConfiguration(blockId: string): Promise<Config> {
     return config;
 }
 
-// Helper to list all children blocks of a page/block (handles pagination)
 async function listAllChildren(blockId: string, pageSize: number = 4): Promise<BlockObjectResponse[]> {
     const page = await notion.blocks.children.list({
         block_id: blockId,
