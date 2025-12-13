@@ -25,6 +25,7 @@ type Config = {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+    console.log(req.headers);
     // Simple shared-secret auth: compare request header with env value.
     const providedAuth = req.headers['authorization'] || req.headers['Authorization'] as any;
     if (!AUTH_HEADER || !providedAuth || providedAuth !== AUTH_HEADER) {
